@@ -1,3 +1,6 @@
 bem/fastlap.[ch]
 bem/pytriangle.[ch]
 .DS_Store
+.ipynb_checkpoints/
+build/
+pyfastlap.egg-info/

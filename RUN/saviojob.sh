@@ -9,9 +9,8 @@
 #SBATCH --partition=savio_bigmem
 #
 # Wall clock limit:
-#SBATCH --time=00:01:00
+#SBATCH --time=00:10:00
 #
 module load python
-source activate bem39
-cd bem-savio/document
-python BEMrun.py >& run.out
+source activate /global/home/groups/fc_haeffnerbem/bem39
+python run.py -s >& run.out

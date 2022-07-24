@@ -10,4 +10,4 @@ Within each job directory must be:
 '''
 
 # the name of the directory containing your job files
-config_job_directory = "example"
+job_directory = "example"

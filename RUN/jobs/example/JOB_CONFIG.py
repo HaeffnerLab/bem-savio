@@ -54,7 +54,6 @@ def remesh(mesh):
 	# first triangulation 
 	mesh.triangulate(opts="q10Q",new = False)
 
-	'''
 	# second triangulation
 	# here we define a spherical constriant zone:
 	inside=1.
@@ -64,23 +63,22 @@ def remesh(mesh):
 	# areas_from_constraints specifies sphere with finer mesh inside it.
 	mesh.areas_from_constraints(Sphere(center=np.array([x0,y0,z0]),radius=rad, inside=inside, outside=outside))
 	mesh.triangulate(opts="q30Q",new = False)
-
+	
 	# third triangulation
 	inside=1e-3
 	outside=1
-	rad = 3*75*1e-3
+	rad = 2.5*75*1e-3
 
 	# # areas_from_constraints specifies sphere with finer mesh inside it.
 	mesh.areas_from_constraints(Sphere(center=np.array([x0,y0,z0]),radius=rad, inside=inside, outside=outside))
 	mesh.triangulate(opts="q30Q",new = False)
-	'''
 
 # generating the grid for BEM simulation
 # the length of each side of the grid
 Lx,Ly,Lz = 0.500, 0.100 ,0.200 # in the unit of scaled length mesh_unit
 # the step size of gridpoints
 # s = 0.010
-s=0.010
+s=0.0025
 sx,sy,sz = s, s, s
 
-use_multiprocessing = True
+use_multiprocessing = False

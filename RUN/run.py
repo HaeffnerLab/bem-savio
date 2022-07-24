@@ -29,6 +29,7 @@ from JOB_CONFIG import *
 if '-s' in sys.argv:
 	print('Running in Savio mode.')
 	show_plots = False
+	use_multiprocessing = True
 	sys.argv.append('-r')
 
 
@@ -63,6 +64,16 @@ remesh(mesh)
 if show_plots:
 	plot_mesh(x0,y0,mesh,mesh_units, title=f'{STL_file} remeshed', fout=base+'fig2.png', save=save_plots, dpi=save_plots_dpi)
 
+# setting up the grid
+nx, ny, nz = [2*np.ceil(L/2.0/s).astype('int') for L in (Lx,Ly,Lz)]
+print("SIZE:", Lx, Ly, Lz)
+print("STEP:", sx, sy, sz)
+print("SHAPE:", nx, ny, nz)
+grid = Grid(center=(x0,y0,z0), step=(sx,sy,sz), shape=(nx, ny, nz))
+# Grid center (nx, ny ,nz)/2 is shifted to origin
+print("GRID ORIGIN:", grid.get_origin())
+print(f'x0,y0,z0 = {x0},{y0},{z0}')
+
 # the default behavior of this script is to NOT RUN the electrostatics simulation
 # this is so that you can adjust the configuration file to your liking without worrying about a long script running each time
 # when you are happy with the configuration, run this script with the commad line flag -r
@@ -75,20 +86,15 @@ if not os.path.exists(base + "pkls"):
 prefix = base + "pkls/" + STL_file.split('.')[0]
 print('PREFIX: ', prefix)
 
-nx, ny, nz = [2*np.ceil(L/2.0/s).astype('int') for L in (Lx,Ly,Lz)]
-print("SIZE:", Lx, Ly, Lz)
-print("STEP:", sx, sy, sz)
-print("SHAPE:", nx, ny, nz)
-grid = Grid(center=(x0,y0,z0), step=(sx,sy,sz), shape=(nx, ny, nz))
-# Grid center (nx, ny ,nz)/2 is shifted to origin
-print("GRID ORIGIN:", grid.get_origin())
-print(f'x0,y0,z0 = {x0},{y0},{z0}')
-
 jobs = list(Configuration.select(mesh,"DC.*","RF"))    
 
 t0 = time()
 if use_multiprocessing:
     n_jobs = cpu_count()
+    for a in sys.argv:
+	    if '-n='in a:
+	    	n_jobs = min(n_jobs, int(a[3:]))	    		  	
+
     print(f'Running with {n_jobs} multiprocessing jobs')
     def run_map():
         Parallel(n_jobs=n_jobs)(delayed(run_job)((job, grid, prefix)) for job in jobs)

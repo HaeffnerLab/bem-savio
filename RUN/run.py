@@ -59,7 +59,7 @@ if config_show_plots:
 # remeshing
 remesh(mesh)
 if config_show_plots:
-	plot_mesh(config_x0,config_y0,mesh,config_mesh_units, title=f'{config_STL_file} remeshed', fout='base+fig2.png', save=config_save_plots, dpi=config_save_plots_dpi)
+	plot_mesh(config_x0,config_y0,mesh,config_mesh_units, title=f'{config_STL_file} remeshed', fout=base+'fig2.png', save=config_save_plots, dpi=config_save_plots_dpi)
 
 # the default behavior of this script is to NOT RUN the electrostatics simulation
 # this is so that you can adjust the configuration file to your liking without worrying about a long script running each time

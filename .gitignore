@@ -1,6 +1,9 @@
 bem/fastlap.[ch]
 bem/pytriangle.[ch]
 
+.DS_Store
+*/jobs/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -18,10 +18,12 @@ from time import time
 from helper_functions import run_job, write_pickle
 from joblib import Parallel, delayed, cpu_count
 
+job_name = sys.argv[1]
+print('JOB: ',job_name)
+
 # loading job config information
-from toggle_job_here import job_directory
-base = f'./jobs/{job_directory}/'
-sys.path.append(f'./jobs/{job_directory}')
+base = f'./jobs/{job_name}/'
+sys.path.append(f'./jobs/{job_name}')
 from JOB_CONFIG import *
 # in Savio mode, plot showing is turned off and the -r flag is activated
 if '-s' in sys.argv:

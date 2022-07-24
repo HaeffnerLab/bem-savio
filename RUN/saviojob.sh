@@ -11,6 +11,7 @@
 # Wall clock limit:
 #SBATCH --time=00:10:00
 #
+JOB="example"
 module load python
 source activate /global/home/groups/fc_haeffnerbem/bem39
-python run.py -s >& run.out
+python run.py $JOB -s >& saviojob.out

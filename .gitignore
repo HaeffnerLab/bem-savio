@@ -3,6 +3,7 @@ bem/pytriangle.[ch]
 
 .DS_Store
 */jobs/*
+!*/jobs/example
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

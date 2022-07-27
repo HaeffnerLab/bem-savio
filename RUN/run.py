@@ -37,8 +37,13 @@ print('RUNNING JOB ', base)
 
 # load stl file
 from bem.formats import stl
-s_nta = stl.read_stl(open(base+STL_file, "rb"))
-print(f'LOADED {STL_file}')
+try:
+	s_nta = stl.read_stl(open(base+STL_file, "rb"))
+	print(f'LOADED {STL_file}')
+except Exception as e:
+	print('Error loading file')
+	print(e)
+	sys.exit()
 
 # print the colors in the stl that need to be named
 bemcolors = bemColors(np.array(list(set(s_nta[2]))),('fusion360','export_stl'))
@@ -60,15 +65,17 @@ if show_plots:
 	plot_mesh(x0,y0,mesh,mesh_units, title=STL_file, fout=base+'fig1.png', save=save_plots, dpi=save_plots_dpi)
 
 # remeshing
-remesh(mesh)
-if show_plots:
-	plot_mesh(x0,y0,mesh,mesh_units, title=f'{STL_file} remeshed', fout=base+'fig2.png', save=save_plots, dpi=save_plots_dpi)
+# if a remeshing function is defined in JOB_CONFIG, then remesh
+if hasattr(os, "remesh"):
+	remesh(mesh)
+	if show_plots:
+		plot_mesh(x0,y0,mesh,mesh_units, title=f'{STL_file} remeshed', fout=base+'fig2.png', save=save_plots, dpi=save_plots_dpi)
 
 # setting up the grid
 nx, ny, nz = [2*np.ceil(L/2.0/s).astype('int') for L in (Lx,Ly,Lz)]
-print("SIZE:", Lx, Ly, Lz)
-print("STEP:", sx, sy, sz)
-print("SHAPE:", nx, ny, nz)
+print("GRID SIZE:", Lx, Ly, Lz)
+print("GRID STEP:", sx, sy, sz)
+print("GRID SHAPE:", nx, ny, nz)
 grid = Grid(center=(x0,y0,z0), step=(sx,sy,sz), shape=(nx, ny, nz))
 # Grid center (nx, ny ,nz)/2 is shifted to origin
 print("GRID ORIGIN:", grid.get_origin())

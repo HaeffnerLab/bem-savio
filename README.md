@@ -277,19 +277,25 @@ s = 0.0025
 sx, sy, sz = s, s, s
 ```
 
-In the example above, we define a grid 500 x 100 x 200 microns with grid points every 2.5 microns in all directions (recall ```mesh_units=1e-3```).
+In the example above, we define the origin as at the center of the xy-plane and at a height of 2000+75 microns because the raise trap surface is 2 mm tall and we expect our trapping height to be 75 microns. Furthermore, we define the set of grid points over a volume of 500 x 100 x 200 microns with points every 2.5 microns in all directions (recall ```mesh_units=1e-3```).
 
 ### Compile Test!
 
 If you've followed all the steps above, `JOB_CONFIG.py` now contains enough information to perform a basic test of: importing the STL, identifying the electrodes, and constructing the grid.
 
-Navigate to the `RUN` folder and execute,
+Navigate to the `RUN` folder. Activate the conda environment (`conda activate bem39`) if you have not already and execute,
 
 ```
 python run.py [your-job-name]
 ```
 
 ### JOB_CONFIG: Re-meshing
+
+There are three main re-meshing operations:
+
+1. Increasing density:
+2. Increasing density with constraints: 
+3. Improving triangle quality: 
 
 <div id='id-7'/>
 ## 3. BEM Electrostatics

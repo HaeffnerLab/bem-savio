@@ -2,6 +2,8 @@
 
 For my simulations of the QuantNET trap, I created a fork of [haeffnerlab/bem](https://github.com/haeffnerlab/bem) called BEM-Savio. This is intended to be a leaner and better documented version of the BEM with further support for running BEM on Berkeley's high performance computing cluster (BRC-HPC) called Savio. 
 
+*Updated: Sept. 2022 YJZ*
+
 ## Table of contents
 - [What is BRC-HPC Savio?](#id-1)
 - [Savio Basics](#id-2)
@@ -15,7 +17,13 @@ For my simulations of the QuantNET trap, I created a fork of [haeffnerlab/bem](h
 
 ## What is BRC-HPC Savio?<div id='id-1'/>
 
-Explain here
+BRC-HPC is a high-performance computing cluster run by Berkeley Research Computing (BRC). The cluster consists broadly of login nodes and compute partitions. Data and software are stored in the cluster within your personal directory or a *shared group directory*. All nodes (login and compute) have access to these directories.
+
+![](imgs/savio.jpeg)
+
+SSH-ing into the cluster is handled by the 4 login nodes (a random node is assigned). You may test commands and scripts within the login in node, but the login nodes are a shared resource and not meant to handle large computational tasks.
+
+To schedule computational tasks (i.e. BEM simulations) to be run on a computing cluster, Savio uses slurm, a job scheduler. This is described in the sections below.
 
 ## Savio Basics <div id='id-2'/>
 
@@ -27,7 +35,7 @@ Note: if this is the first time you are reading this documentation, I suggest sk
 
 Our lab is granted 300,000 yearly service units via Hartmut's faculty allowance. To check that you have access to this computing allowance, login to [MyBRC](https://mybrc.brc.berkeley.edu/user/login) and check that the BRC Cluster Project ```fc_haeffnerbem``` appears on your dashboard. To be added to the project, please contact Hartmut or Yi.
 
-### Access to the Group Computing Allowance
+Note: service units are calculated based on the number of cores in the node you requested. E.g., if you run a program for 1 hr on a single core of a 16-core node, you will be charged 16 service units. Therefore, it is in your interest to use as many cores as possible (i.e. as many cores as the available memory allows).
 
 ### SSH
 
@@ -36,6 +44,53 @@ To ssh into the a login node,
 ```ssh your_BRC_username@hpc.brc.berkeley.edu```
 
 *The password is not your BRC pin*. One-time password authentication via your phone is required. If you have not already, set up OTP via Google Authenticator by following these [directions](https://docs-research-it.berkeley.edu/services/high-performance-computing/user-guide/setting-otp/). The password you must enter is ```XY``` where ```X``` is your BRC pin and immediately following with no spaces is ```Y``` the 6-digit one-time code from Authenticator. 
+
+### Access to the Group Computing Allowance
+
+The hardware configurations for each of the Savio partitions may be found [here](https://docs-research-it.berkeley.edu/services/high-performance-computing/user-guide/hardware-config/#Savio-Hardware). To find which accounts and partitions you have access to,
+
+```sacctmgr -p show associations user=$USER```
+
+![](imgs/sacctmgr.png)
+
+Since our simulations are generally limited by memory, we generally would like to choose bigmem nodes.
+
+### Modules and Custom Software
+
+A number of modules are installed in Savio. These modules can be loaded with the `module` command. For example, every time we run BEM, we want to first load Python (you can run Python without loading the Python module, but it is an outdated version).
+
+`module load python`
+
+**Note: this is a commonly forgotten step**
+
+We will install our own software in a conda environment in the shared directory `/global/home/groups/fc_haeffnerbem`. All users with access to our project has access to this shared directory. (Note: this might cause issues is multiple people want to run BEM at the same time. This can be resolved by installing and running BEM from each individual's personal directory.)
+
+A final quirk in using conda environments on Savio *not* using the normal `conda activate module_name` but rather,
+
+`source activate module_name`
+
+**This is also common source of error.**
+
+
+### Scheduling and Monitoring Jobs with slurm
+
+TODO TALK ABOUT SLURM SBATCH
+
+The ```sq``` module shows recent and pending jobs,
+
+```
+module load sq
+sq
+```
+
+
+Note: the directory where you run the ```sbatch``` command is the directory where you batch script runs.
+
+Note: you have to deactivate the enviornment before running the sbatch command
+
+### Transferring Data
+
+TODO
 
 ## Workflow Overview <div id='id-3'/>
 
@@ -75,10 +130,6 @@ Navigate to the bem-savio directory which contains ```setup.py``` and install BE
 
 ```pip install .```
 
-To optionally install Mayavi (for 3D visualization). Note: it is discouraged that you use Mayavi locally or on Savio. As of writing, Mayavi does not work on Savio. If Mayavi is not installed, you may see a warning that tvtk is not found when executing bem-savio. 
-
-```pip install 'vtk<9.1' 'PyQt5<5.16' ; pip install 'mayavi<4.8' ```
-
 To deactivate the environment,
 
 ```conda deactivate ``` 
@@ -109,10 +160,6 @@ Navigate to the bem-savio directory which contains ```setup.py``` and install BE
 
 ```pip install .```
 
-To optionally install Mayavi (for 3D visualization). Note: it is discouraged that you use Mayavi locally or on Savio. As of writing, Mayavi does not work on Savio. If Mayavi is not installed, you may see a warning that tvtk is not found when executing bem-savio. 
-
-```pip install 'vtk<9.1' 'PyQt5<5.16' ; pip install 'mayavi<4.8' ```
-
 To deactivate the environment,
 
 ```source deactivate ``` 
@@ -121,10 +168,10 @@ To deactivate the environment,
 
 ### Coordinates
 
-First, create a model of the trap in Fusion360. Check that you are working in CAD coordinates (see figure below). In other words, the trap axis in Fusion360 should be along the x-axis and the vertical direction should be along the z-axis.
+First, create a model of the trap in Fusion360. Check that your model follows optical coordinates (see figure below). In other words, the trap axis in Fusion360 should be along the z-axis and the vertical direction should be along the y-axis.
 
 ![imgs/coords.jpg](imgs/coords.jpg)
-<center><figcaption>During different stages of running bem-savio, two different conventions for coordinates are used. In CAD coordinates, x is along the trap axis and in optical coordinates z is along the trap axis.</figcaption></center>
+<center><figcaption>There are two standard conventions for coordinates. In CAD coordinates, x is along the trap axis and in optical coordinates z is along the trap axis. **Throughout BEM, we will always used optical coordinates.**</figcaption></center>
 
 Additionally, ensure that your trap model is a single body in Fusion360. When exporting, each body becomes its own STL and we wish to have the trap as a single STL.
 
@@ -189,7 +236,8 @@ Your directory tree should now look like this,
 	run.py
 	\jobs
 		\example
-			\...
+			\pyramidtrap.stl
+			\JOB_CONFIG.py
 		\your-job-name
 			\your-model.stl
 			\JOB_CONFIG.py
@@ -213,14 +261,19 @@ STL_file = 'your-model.stl'
 mesh_units = 1e-3
 
 # plotting settings
+plot_three_d = False
 show_plots = True
 save_plots = True
 save_plots_dpi = 1000
 ```
 
 - ```STL_file```: the name of the STL model located in your job directory. For example, ```STL_file = 'pyramidtrap.stl'```.
-- ```mesh_units``` are the units in which the STL file were exported.
-- `show_plots`, `save_plots`, and `save_plots_dpi`: toggles whether plots of the mesh before and after re-meshing should be shown/saved.
+- ```mesh_units``` are the units in which the STL file were exported. This should always be mm.
+- `show_plots`, `save_plots`, and `save_plots_dpi`: toggles whether plots of the mesh before and after re-meshing should be shown/saved. The default behavior is a 2D of the mesh projected to the z-x plane (i.e. top-down view). Optionally, `plot_three_d` toggles if the mesh should be plot in a 3D view.
+
+![imgs/coords.jpg](imgs/plots.jpg)
+<center><figcaption>Sample plots of the mesh, 2D and 3D.</figcaption></center>
+
 
 ### JOB_CONFIG: Naming Electrodes
 
@@ -256,16 +309,16 @@ In order to configure the grid, we must specify,
 ```
 # specify grid origin
 x0 = 0*1e-3
-y0 = 0*1e-3
-z0 = 2 + 75*1e-3
+y0 = 2 + 75*1e-3
+z0 = 0*1e-3
 
 # specify grid points
-Lx, Ly, Lz = 0.500, 0.100, 0.200 
+Lx, Ly, Lz = 0.100, 0.200, 0.500
 s = 0.0025
 sx, sy, sz = s, s, s
 ```
 
-In the example above, we define the origin as at the center of the xy-plane and at a height of 2000+75 microns because the raise trap surface is 2 mm tall and we expect our trapping height to be 75 microns. Furthermore, we define the set of grid points over a volume of 500 x 100 x 200 microns with points every 2.5 microns in all directions (recall ```mesh_units=1e-3```).
+In the example above, we define the origin as at the center of the zx-plane and at a height of y=2000+75 microns because the raise trap surface is 2 mm tall and we expect our trapping height to be 75 microns. Furthermore, we define the set of grid points over a volume of 100 x 200 x 500 microns with points every 2.5 microns in all directions (recall ```mesh_units=1e-3```).
 
 ### Compile Test!
 
@@ -281,32 +334,128 @@ python run.py [your-job-name]
 
 ### JOB_CONFIG: Re-meshing
 
-There are three main re-meshing operations:
+We use `mesh.triangulate` and `mesh.areas_from_constraints` to re-mesh. In `JOB_CONFIG.py`, define a new function `remesh`, and place all re-meshing code (e.g. calls to `mesh.triangulate`) within this function.
 
-1. Increasing density:
-2. Increasing density with areas from constraints: 
-3. Improving triangle quality: 
+```
+def remesh(mesh):
+	# TODO
+```
+
+There are three main re-meshing operations (note: the documentation for triangulate may be found [here](doc/Triangle_ Command line switches.pdf) and contains less-common options):
+
+**<u>1. Improving triangle quality</u>**: the quality of a triangle is defined by the minimum angle of all triangles. 
+
+![](imgs/quality.jpg)<center><figcaption>Bad and better quality triangles.</figcaption></center>
+
+To increase the quality (minimum angle) run,
+
+`mesh.triangulate(opts='q30Q')`
+
+where `q` is the quality flag, `30` specifies the minimum angle, and `Q` specifies that the triangulation should run quietly (little output). You may change `30` to any minimum angle desired. Note that (from the documentation): if the minimum angle is 20.7 deg or smaller, the triangulation algorithm is theoretically guaranteed to terminate;
+in practice, the algorithm often succeeds for minimum angles up to 33 deg; it usually doesn't terminate for angles above 34 deg. If the angle you specify is too large, the triangulation will not terminate.
+
+**<u>2. Increasing density</u>**: to increase the density of triangles, there is an option to specify the maximum triangle area. With this option, `mesh.triangulate` will add triangles until all triangles have an area smaller than the maximum area.
+
+`mesh.triangulate(opts='a0.1Q')`
+
+where `a` is the maximum area flag, `0.1` specifies the maximum area, and `Q` specifies that triangulate should run quietly.
+
+![](imgs/density.jpg)<center><figcaption>Increasing the triangle density with the `a` flag.</figcaption></center>
+
+**<u>3. Increasing density with areas from constraints</u>**: we often wish to increase the density of an area of interest while but not the density globally. This way, we obtain greater charge resolution near the region of interest while sacrificing the resolution of charges far away in favor of a faster runtime.
+
+In BEM, first call the function `mesh.areas_from_constraints` which internally sets the maximum area parameter (described previously) based on some constraint,
+
+`mesh.areas_from_constraints(constraint)`
+
+where `constraint` defines the geometry of our region on interest. There are two types of constraint objects. First is the sphere,
+
+`Sphere(center=np.array(x0,y0,z0), radius=rad, inside=in_density, out=out_density)`
+
+where `center` is the center of the sphere, `radius` is the radius of the sphere, `in_area` is the maximum area of triangles inside the constraint, and `out_area` is the maximum area of triangles outside the constraint (generally `in_area`<`out_area`).
+
+Second is the cylinder,
+
+`Cylinder(start=np.array(x0,y0,z0-2.5), end=np.array(x0,y0,z0+2.5), radius=rad, inside=in_density, out=out_density)`
+
+where `start` and `end` are two points that (when connected in a line) form the axis of the cylinder, and `rad` is the radius of the cylinder.
+
+After defining the areas from constraints, we must call triangulate to actually tell mesh to re-mesh based on the areas we have defined: `mesh.triangulate(opts='Q',new=False)`. An example of this entire process:
+
+```
+in_area = 1e-4
+out_area = 0.1
+rad = 5*75e-3 # five times the hypothesized ion height
+
+mesh.areas_from_constraints(Sphere(center=np.array([x0,y0,z0]),radius=rad,inside=in_area,outside=out_area))
+mesh.triangulate(opts='Q',new=False)
+```
+
+![](imgs/constraint.jpg)<center><figcaption>Example of a spherical and cylindrical constraint. Note that the shape of the region of interest do not look very clean. This is because `mesh.areas_from_constraints` only increases the density of a region if all vertices of the existing triangle fall within the constraint. Therefore, a coarse initial mesh will lead to **aliasing**. The solution is to slightly increase the density of the global mesh before defining areas from constraints.</figcaption></center>
+
+**Full Example**: it is encouraged to increase the density piece by piece to obtain the best quality mesh. The following is a full example of the `remesh` function,
+
+```
+def remesh(mesh):
+	# global
+	mesh.triangulate(opts="q30Q",new = False)
+	mesh.triangulate(opts='1Q', new=False)
+	
+	# first refinement
+	# believe ion height is approx. 75 micron
+	inside=1e-1
+	outside=1
+	rad = 5*75e-3
+	mesh.areas_from_constraints(Sphere(center=np.array([x0,y0,z0]),radius=rad, inside=inside, outside=outside))
+	mesh.triangulate(opts="Q",new = False)
+	
+	# second refinement
+	inside=1e-3
+	outside=1e-1
+	rad = 2*75e-3
+	mesh.areas_from_constraints(Sphere(center=np.array([x0,y0,z0]),radius=rad, inside=inside, outside=outside))
+	mesh.triangulate(opts="Q",new = False)
+```
+
+After configuring the re-meshing, you are not ready to run the simulation itself!
 
 ## 3. BEM Electrostatics <div id='id-7'/>
 
-Explain what BEM is actually doing placing charges
+BEM simulates the potential generated by each electrode at each of the grid points. When multiprocessing, each electrode is a distinct project. For each electrode: when BEM finishes calculating the potentials, the result is saved in a pickle file in `pkls`. After the entire simulation is finished, a final pickle file named info stores information about the configuration (i.e. the grid, `x0`, `y0`, `z0`, etc). When loading in our results for multipole analysis, the configuration of the simulation is easily reloaded from this file.
+
+**TODO** Explain what BEM is actually doing placing charges
+
 
 ### run.py Flags
 
 The full behavior of `run.py`:
 
-`python run.py [job-name] -r -s -n=[cores]`
+`python run.py [job-name] -r -s -n=[cores] -R`
 
 - **`[job=name]`: required argument.** Name of your job directory in `RUN/jobs/`.
-- `-r`: run BEM electrostatics after setup. The default behavior of this script completes all setup steps (read STl, name electrodes, re-mesh, generate grid), but exits without running electrostatics.
-- `-s`: Savio mode. Sets -r, use_multiprocessing=True, and show_plots=false
+- `-r`: run BEM electrostatics after setup. The default behavior of this script completes all setup steps (read STL, name electrodes, re-mesh, generate grid), but exits without running electrostatics.
+- `-s`: Savio flags. Sets -r, `use_multiprocessing=True`, and `show_plots=false`. These are options that help Savio run smoothly and you are encouraged to use this flag when running on Savio
 - `-n`: when multiprocessing, this flag specifies the number of cores that should be used. By default, all cores are used. However, if your simulation is bottlenecked by memory, this command can be used to specify fewer multiprocesses.
+- `-R`: resume. If a simulation terminates before all electrodes have been run, resuming will first search for all electrodes that have successfully run in `pkls` and skip those electrodes.
 
 ### Running Locally
 
+Ensure that your job directory and `JOB_CONFIG.py` are populated as described in the previous sections. Ensure that BEM is installed. Navigate to the `bem-savio/RUN` folder, activate the environment and run the `run.py` script,
+
+```
+conda activate bem39
+python run.py [job-name] -r
+```
+
+without the `-r` flag, `run.py` will perform all the setup steps but stop short of actually running the simulation. You should first tweak the configuration/setup of your simulation by running without the `-r` flag. Once you are happy with the configuration, include the flag to run the simulation.
+
 ### Running on Savio
 
+TODO
+
 ## 4. Multipoles, Analysis, and Control <div id='id-8'/>
+
+NOTE: THE CURRENT CODE FOR PERFORMING THESE STEPS (VERY MESSY) IS IN `bem-savio/RUN/Multipoles and Analysis.ipynb`. 
 
 ### Plotting Potentials
 
@@ -317,38 +466,11 @@ The full behavior of `run.py`:
 
 
 
-## TODOs <div id='id-9'/>
-- wenhao get more colors?
+## TODOs <div id='id-9'/>s
+- Add more colors to the bemcols library. Currently, only 40 electrodes are supported.
+- There remains the question: what RF frequency is used to calculate the psuedopotential? Presumably, it's in the electrostatics code somewhere.
+- Clean up (i.e. maybe place useful plotting/multiples/etc functions in helper_functions and clean up existing functions in helper_functions) multiple and analysis. Document here (section 4) including what is actually happening in multipoles behind the scenes (defining ROI, performing multipole fit, etc).
 
-
-## END END
-
-
-
-
-## V. Running BEM on Savio
-
-To find which accounts and partitions (within those accounts) that you have access to,
-
-```sacctmgr -p show associations user=$USER```
-
-![](imgs/sacctmgr.png)
-
-The hardware configurations for each of the Savio partitions may be found [here](https://docs-research-it.berkeley.edu/services/high-performance-computing/user-guide/hardware-config/#Savio-Hardware).
-
-The ```sq``` module shows recent and pending jobs,
-
-```
-module load sq
-sq
-```
-
-
-Note: the directory where you run the ```sbatch``` command is the directory where you batch script runs.
-
-Note: you have to deactivate the enviornment before running the sbatch command
-
-sacct -j 12572927 --format=JobID,JobName,MaxRSS,Elapsed
 
 
 

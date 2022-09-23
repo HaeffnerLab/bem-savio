@@ -277,12 +277,14 @@ Navigate to the `RUN` folder. Activate the conda environment (`conda activate be
 python run.py [your-job-name]
 ```
 
+`run.py` should run without error. If `show_plots` is toggled on, you should see a plot of trap mesh.
+
 ### JOB_CONFIG: Re-meshing
 
 There are three main re-meshing operations:
 
 1. Increasing density:
-2. Increasing density with constraints: 
+2. Increasing density with areas from constraints: 
 3. Improving triangle quality: 
 
 ## 3. BEM Electrostatics <div id='id-7'/>
@@ -290,6 +292,15 @@ There are three main re-meshing operations:
 Explain what BEM is actually doing placing charges
 
 ### run.py Flags
+
+The full behavior of `run.py`:
+
+`python run.py [job-name] -r -s -n=[cores]`
+
+- **`[job=name]`: required argument.** Name of your job directory in `RUN/jobs/`.
+- `-r`: run BEM electrostatics after setup. The default behavior of this script completes all setup steps (read STl, name electrodes, re-mesh, generate grid), but exits without running electrostatics.
+- `-s`: Savio mode. Sets -r, use_multiprocessing=True, and show_plots=false
+- `-n`: when multiprocessing, this flag specifies the number of cores that should be used. By default, all cores are used. However, if your simulation is bottlenecked by memory, this command can be used to specify fewer multiprocesses.
 
 ### Running Locally
 
@@ -340,15 +351,7 @@ Note: you have to deactivate the enviornment before running the sbatch command
 sacct -j 12572927 --format=JobID,JobName,MaxRSS,Elapsed
 
 
-python run.py [JOB] -r -s -n=[CORES]
 
-JOB: name of the directory containing the job configuration files. Required argument.
-
--r: run BEM electrostatics. By default, this script will not run electrostatics
-
--s: Savio mode. Sets -r and use_multiprocessing=True, show_plots=false
-
--n: when using multiprocessing, this flag specifies the number of cores that should be used. By default, all cores are used. However, if the program is bottlenecked by memory, this command can be used to specify fewer cores.
 
 
 

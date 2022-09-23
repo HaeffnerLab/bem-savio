@@ -8,6 +8,7 @@ from bem import Result
 import pickle
 import copy
 
+
 #trans_file = 'vtk'
 trans_file = 'pkl'
 
@@ -30,25 +31,33 @@ def load_file(Mesh,Electrodes,prefix,scale,use_stl=True):
 
 #Create custom subplot w/ dimensions that you want, add the trapping point,
 #then use mesh object's 'plot' function to add the mesh to it.
-def plot_mesh(x,y,mesh,mesh_unit,title='',fout='fig',save=False,dpi=300):
+def plot_mesh(x,y,z,mesh,mesh_unit,title='',fout='fig',save=False,dpi=300,three_d=False):
     '''
     x,y: trapping location (projected along z)
     fout: name of file to save save figure
     '''
     # Plot triangle meshes.
-    fig, ax = plt.subplots(subplot_kw=dict(aspect="equal"), figsize=(12, 6), dpi=400)
-    ax.set_xlabel(f"x [{np.round(mesh_unit/1e-6)} $\mu$m]", fontsize=10)
-    ax.set_ylabel(f"y [{np.round(mesh_unit/1e-6)} $\mu$m]", fontsize=10)
-    ax.scatter(x, y, marker='.', color='k',label=f'(x0,y0)=({x},{y})', s=5)
-    ax.scatter(0, 0, marker='x', color='r',label='(0,0)', s=5)
-    # ax.grid(axis = 'both')
-    # yticks = np.arange(-1, 1, 0.2)
-    # ax.set_yticks(yticks)
-    # xticks = np.arange(-1, 1, 0.4)
-    # ax.set_xticks(xticks)
-    ax.set_title(title)
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    mesh.plot(ax)
+    if not three_d:
+        fig, ax = plt.subplots(subplot_kw=dict(aspect="equal"), figsize=(12, 6), dpi=400)
+        mesh.plot(ax, three_d)
+        ax.set_xlabel(f"z [{np.round(mesh_unit/1e-6)} $\mu$m]", fontsize=10)
+        ax.set_ylabel(f"x [{np.round(mesh_unit/1e-6)} $\mu$m]", fontsize=10)
+        ax.scatter(z, x, marker='.', color='k',label=f'(z0,x0)=({z},{x})', s=5)
+        ax.scatter(0, 0, marker='x', color='r',label='(0,0)', s=5)
+        ax.set_title(title)
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    else:
+        fig = plt.figure(figsize=(10,10))
+        ax = fig.add_subplot(projection='3d')
+        mesh.plot(ax, three_d)
+        ax.set_xlabel(f"x [{np.round(mesh_unit/1e-6)} $\mu$m]", fontsize=10)
+        ax.set_ylabel(f"y [{np.round(mesh_unit/1e-6)} $\mu$m]", fontsize=10)
+        ax.set_zlabel(f"z [{np.round(mesh_unit/1e-6)} $\mu$m]", fontsize=10)
+        ax.scatter(0, 0, 0, marker='x', color='r',label='(0,0,0)', s=30)
+        ax.scatter(x, y, z, marker='.', color='r',label=f'(x0,y0,z0)=({x},{y},{z})', s=20)      
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        ax.azim = 300
+
     if save:
     	plt.savefig(fout, bbox_inches='tight', dpi=dpi)
     plt.show()
@@ -73,8 +82,6 @@ def run_job(args):
     result.save(prefix,'pkl')
     print("finished job %s" % job.name)
     return job.collect_charges()
-
-
 
 
 def plot_RF(Result,prefix,grid):

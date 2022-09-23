@@ -15,7 +15,7 @@ from bem.formats import stl
 from multipoles import MultipoleControl
 from plottingfuncns import *
 from time import time
-from helper_functions import run_job, write_pickle
+from helper_functions import run_job
 from joblib import Parallel, delayed, cpu_count
 
 job_name = sys.argv[1]
@@ -25,6 +25,12 @@ print('JOB: ',job_name)
 base = f'./jobs/{job_name}/'
 sys.path.append(f'./jobs/{job_name}')
 from JOB_CONFIG import *
+remesh = None
+try:
+	from JOB_CONFIG import remesh
+except Exception as e:
+	print('No remeshing function found in JOB_CONFIG')
+
 # in Savio mode, plot showing is turned off and the -r flag is activated
 if '-s' in sys.argv:
 	print('Running in Savio mode.')
@@ -62,14 +68,14 @@ mesh = Mesh.from_mesh(stl.stl_to_mesh(*s_nta, scale=1, rename=bemcolors.electrod
 
 # plot the electrodes mesh
 if show_plots:
-	plot_mesh(x0,y0,mesh,mesh_units, title=STL_file, fout=base+'fig1.png', save=save_plots, dpi=save_plots_dpi)
+	plot_mesh(x0,y0,z0,mesh,mesh_units,title=STL_file, fout=base+'fig1.png', save=save_plots, dpi=save_plots_dpi, three_d=plot_three_d)
 
 # remeshing
 # if a remeshing function is defined in JOB_CONFIG, then remesh
-if hasattr(os, "remesh"):
+if remesh:
 	remesh(mesh)
 	if show_plots:
-		plot_mesh(x0,y0,mesh,mesh_units, title=f'{STL_file} remeshed', fout=base+'fig2.png', save=save_plots, dpi=save_plots_dpi)
+		plot_mesh(x0,y0,z0,mesh,mesh_units, title=f'{STL_file} remeshed', fout=base+'fig2.png', save=save_plots, dpi=save_plots_dpi, three_d=plot_three_d)
 
 # setting up the grid
 nx, ny, nz = [2*np.ceil(L/2.0/s).astype('int') for L in (Lx,Ly,Lz)]
@@ -85,7 +91,7 @@ print(f'x0,y0,z0 = {x0},{y0},{z0}')
 # this is so that you can adjust the configuration file to your liking without worrying about a long script running each time
 # when you are happy with the configuration, run this script with the commad line flag -r
 if not '-r' in sys.argv:
-	print('Exiting...to run the BEM simulation, execute this script with the -r flag')
+	print('EXITING: to run the BEM simulation, execute this script with the -r flag')
 	sys.exit()
 
 if not os.path.exists(base + "pkls"):
@@ -93,7 +99,32 @@ if not os.path.exists(base + "pkls"):
 prefix = base + "pkls/" + STL_file.split('.')[0]
 print('PREFIX: ', prefix)
 
-jobs = list(Configuration.select(mesh,"DC.*","RF"))    
+jobs = list(Configuration.select(mesh,"DC.*","RF"))   
+
+# resume mode
+# search for existing electrode pkls, if they are found, those electrodes are skipped
+if '-R' in sys.argv:
+	print('Running in resume mode')
+	dirs = os.listdir(base+'/pkls')
+	names = []
+	for d in dirs:
+		try:
+			electrode = d.split('_')[-1].split('.')[0]
+			if electrode=='info':
+				break
+			print('Skipping electrode: ', electrode)
+			names.append(electrode)
+		except Exception as e:
+			break
+	if names:
+		new_jobs = []
+		for j in jobs:
+			if not j.name in names:
+				new_jobs.append(j)
+		jobs = new_jobs
+print('Running electrodes:')
+for j in jobs:
+	print(j.name)
 
 t0 = time()
 if use_multiprocessing:

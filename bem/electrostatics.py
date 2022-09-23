@@ -21,13 +21,13 @@ import pickle
 import logging, re, operator, os
 
 import numpy as np
-try:
-    from tvtk.api import tvtk
-    from mayavi.modules.surface import Surface
-    from mayavi.modules.iso_surface import IsoSurface
-except ImportError:
-    import warnings
-    warnings.warn("not tvtk found")
+# try:
+#     from tvtk.api import tvtk
+#     from mayavi.modules.surface import Surface
+#     from mayavi.modules.iso_surface import IsoSurface
+# except ImportError:
+#     import warnings
+#     warnings.warn("not tvtk found")
 
 from .fastlap import (fastlap, centroid,
         TRIANGLE, NO_SOURCE, CONSTANT_SOURCE, INDIRECT, FIELD)

@@ -21,13 +21,21 @@ import logging, itertools, copy
 from collections import OrderedDict
 
 import numpy as np
-try:
-    from tvtk.api import tvtk
-except ImportError:
-    import warnings
-    warnings.warn("not tvtk found")
+import matplotlib.pyplot as plt
+# try:
+#     from tvtk.api import tvtk
+# except ImportError:
+#     import warnings
+#     warnings.warn("not tvtk found")
 
 from .pytriangle import triangulate
+
+
+import mpl_toolkits.mplot3d as a3
+import matplotlib.colors as colors
+import pylab as pl
+import numpy as np
+
 
 def check_rightHand(points,triangles):
     for tri in triangles:
@@ -328,21 +336,26 @@ class Triangulation(object):
         created in future refinements conforms to the minimum of the
         constraints. constraints must not be empty.
         """
-        areas = np.nanmin([
-            c.lookup(self.points) for c in constraints], axis=0)
+        areas = np.nanmin([c.lookup(self.points) for c in constraints], axis=0)
         # take minimum over triangle vertices
-        areas = areas.take(self.triangles).min(axis=-1)
+        # print(areas.shape)
+        # print(self.triangles.shape)
+        areas = areas.take(self.triangles)
+        areas = areas.min(axis=-1)
         self.set_max_areas(areas)
 
     def set_max_areas(self, max_areas):
         self._args["triangleareas"] = max_areas
 
-    def plot(self, ax, axes=(0, 1), *args, **kwargs):
+    def plot(self, ax, three_d, axes=(2,0), *args, **kwargs):
         """
         plot 2D projection of mesh (use given axes indices, project
         along remaining axis)
         """
-        ax.triplot(self.points[:, axes[0]], self.points[:, axes[1]],
+        if three_d:
+            ax.plot_trisurf(self.points[:,0],self.points[:,1],self.points[:,2], triangles=self.triangles.copy(),edgecolor='black', linewidth=1.0, alpha=0.0, color='grey')
+        else:
+            ax.triplot(self.points[:, axes[0]], self.points[:, axes[1]],
                 self.triangles.copy(), *args, **kwargs)
 
 

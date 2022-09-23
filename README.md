@@ -236,13 +236,13 @@ Your directory tree should now look like this,
 	run.py
 	\jobs
 		\example
-			\pyramidtrap.stl
-			\JOB_CONFIG.py
+			pyramidtrap.stl
+			JOB_CONFIG.py
 		\your-job-name
-			\your-model.stl
-			\JOB_CONFIG.py
-	\helper_functions
-	\saviojob.sh
+			your-model.stl
+			JOB_CONFIG.py
+	helper_functions
+	saviojob.sh
 ```
 
 In the sections below, we will explain how to fill out ```JOB_CONFIG.py``` using the ```RUN/jobs/examples``` job as an example. It is important to populate the configuration file in the order of the sections below. 

@@ -1,3 +1,5 @@
+Update 12/2/2022: the master branch of the Haeffnerlab/bem repository now has savio server support, the savio documentation included in this repository, and interactive 3-d tools for meshing and potential analysis. 
+
 # BEM Simulations for QuantNET
 
 For my simulations of the QuantNET trap, I created a fork of [haeffnerlab/bem](https://github.com/haeffnerlab/bem) called BEM-Savio. This is intended to be a leaner and better documented version of the BEM with further support for running BEM on Berkeley's high performance computing cluster (BRC-HPC) called Savio. 

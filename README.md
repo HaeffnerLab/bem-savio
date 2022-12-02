@@ -1,4 +1,4 @@
-Update 12/2/2022: the master branch of the Haeffnerlab/bem repository now has savio server support, the savio documentation included in this repository, and interactive 3-d tools for meshing and potential analysis. 
+Update 12/2/2022: the master branch of the Haeffnerlab/bem repository now has savio server support, the savio documentation included in this repository, and interactive 3-d tools for meshing and potential analysis. For now we (Ben, Shuqi, Qian, Nicole) plan to make that the development repository for bem simulations. For questions, comments, concerns please contact Ben. 
 
 # BEM Simulations for QuantNET
 
